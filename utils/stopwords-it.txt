@@ -1,6 +1,7 @@
 
 a           
-abbastanza  
+abbastanza
+abbiamo  
 accidenti   
 ad          
 adesso      
@@ -51,7 +52,8 @@ cento
 certa       
 certe       
 certi       
-certo       
+certo
+c'è       
 che         
 chi         
 chicchessia 
@@ -120,7 +122,8 @@ due
 dunque      
 durante     
 e           
-è           
+è
+e'           
 ecco        
 ed          
 egli        
@@ -261,9 +264,10 @@ peccato
 peggio      
 per         
 perche      
-perchè      
+perchè
+perché      
 percio      
-perciò      
+perciò
 perfino     
 pero        
 però        
@@ -273,11 +277,13 @@ pieno
 piglia      
 piu         
 più         
-po          
+po
+po'          
 pochissimo  
 poco        
 poi         
-poiche      
+poiche
+poiché      
 press       
 prima       
 primo       
@@ -311,7 +317,8 @@ questi
 questo      
 qui         
 quindi      
-riecco      
+riecco
+sa      
 salvo       
 sara        
 sarà        
@@ -395,4 +402,8 @@ volta
 vostra      
 vostre      
 vostri      
-vostro      
+vostro
+video
+link
+live
+foto      
