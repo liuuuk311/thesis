@@ -1,0 +1,33 @@
+<!doctype html>
+{% extends "layout.html" %}
+{% block title %}Tweet{% endblock %}
+
+{% block content %}
+{% if tweet %}
+<h1>{{ tweet['text'] }}</h1>
+{% else %}
+<h1>Qualcosa è andato storto, non ho trovato il Tweet.</h1>
+{% endif %}
+<form action="/" method="POST">
+  {% for t in tweet %}
+  <input type="hidden" name="{{ t }}" value="{{ tweet[t] }}">
+  {% endfor %}
+  <div class="row my-5">
+    <div class="col text-center">
+      <input type="submit" name="submit_button"
+        value="Positivo" class="btn btn-outline-primary"></div>
+    <div class="col text-center">
+      <input type="submit" name="submit_button"
+        value="Neutro" class="btn btn-outline-primary"></div>
+    <div class="col text-center">
+      <input type="submit" name="submit_button"
+        value="Negativo" class="btn btn-outline-primary"></div>
+  </div>
+  <div class="row my-5">
+    <div class="col text-center">
+      <input type="submit" name="submit_button" value="Non è in italiano?"
+        class="btn btn-outline-secondary">
+    </div>
+  </div>
+</form>
+{% endblock %}
