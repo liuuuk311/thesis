@@ -13,7 +13,7 @@ def get_tweet_dict(text):
    
     tweet = {}
     for i, m in enumerate(metadata):
-        tweet[m] = splitted[i]
+        tweet[m] = text[i]
 
     return tweet
 

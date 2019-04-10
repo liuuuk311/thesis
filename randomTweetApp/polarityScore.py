@@ -14,7 +14,7 @@ def get_polarity_score(text):
     score = 0
     for w in text.split():
         if w in lemma_dict:
-            score += lemma_dict[w]
+            score += int(lemma_dict[w])
     
     return score/len(text.split())
 
