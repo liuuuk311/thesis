@@ -6,7 +6,7 @@ from textCleaner import clean
 
 files = [f for f in glob.glob("data/*.csv", recursive=False)]
 # Contiene tweet stranieri
-files.remove('data/clandestini15-16.csv')
+files.remove('data/final.csv')
 
 def get_tweet_dict(text):
     metadata = ['username', 'date', 'retweets', 'favorites', 'text', 'geo', 'mentions', 'hashtags', 'id', 'permalink']
@@ -18,33 +18,38 @@ def get_tweet_dict(text):
     return tweet
 
 def get_rand_tweet(debug=False):
-    rand_file = files[random.randrange(len(files))]
 
+    rand_file = files[random.randrange(len(files))]
+    if debug:
+        print('leggo da: ' + rand_file)
+        
     filesize = sum(1 for line in open(rand_file)) #size of the really big file
 
-    offset = random.randrange(filesize)
+    offset = random.randint(1, filesize)
+    try:
+        f = open(rand_file)
+        f.seek(offset)                  #go to random position
+        f.readline()                    # discard - bound to be partial line
+        rand_line = f.readline()        # bingo!
 
-    f = open(rand_file)
-    f.seek(offset)                  #go to random position
-    f.readline()                    # discard - bound to be partial line
-    rand_line = f.readline()        # bingo!
+        # extra to handle last/first line edge cases
+        if len(rand_line) == 0:         # we have hit the end
+            f.seek(1)
+            rand_line = f.readline()    # so we'll grab the first line instead
+        
 
-    # extra to handle last/first line edge cases
-    if len(rand_line) == 0:         # we have hit the end
-        f.seek(1)
-        rand_line = f.readline()    # so we'll grab the first line instead
-    
+        splitted = rand_line.split(';')
 
-    splitted = rand_line.split(';')
+        if debug: 
+            print(splitted)
 
-    if debug: 
-        print(splitted)
-
-    splitted[4] = clean(splitted[4])
-    
-    tweet = get_tweet_dict(splitted)
-    
-    return tweet
-
+        if len(splitted) == 10:
+            splitted[4] = clean(splitted[4])
+            tweet = get_tweet_dict(splitted)
+        
+            return tweet
+        else:
+            get_rand_tweet(debug)
+    except Exception as e: print(e)
 if __name__ == "__main__":
     print(get_rand_tweet())

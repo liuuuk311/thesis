@@ -4,10 +4,9 @@
 
 {% block content %}
 {% if tweet %}
-<h1>{{ tweet['text'] }}</h1>
-{% else %}
-<h1>Qualcosa è andato storto, non ho trovato il Tweet.</h1>
-{% endif %}
+<p class="text-center">Come giudichi questo Tweet?</p>
+<h1 class="text-center">{{ tweet['text'] }}</h1>
+
 <form action="/" method="POST">
   {% for t in tweet %}
   <input type="hidden" name="{{ t }}" value="{{ tweet[t] }}">
@@ -30,4 +29,16 @@
     </div>
   </div>
 </form>
+{% else %}
+<h1 class="text-center">Ops, qualcosa è andato storto, non ho trovato il Tweet.</h1>
+<h1 class="text-center">😢</h1>
+<form action="/" method="GET">
+  <div class="row my-5">
+    <div class="col text-center">
+      <input type="submit" name="submit_button" value="Riprova"
+        class="btn btn-outline-secondary">
+    </div>
+  </div>
+</form>
+{% endif %}
 {% endblock %}
