@@ -6,7 +6,7 @@ from textCleaner import clean
 
 files = [f for f in glob.glob("data/*.csv", recursive=False)]
 # Contiene tweet stranieri
-files.remove('data/final.csv')
+# files.remove('data/final.csv')
 
 def get_tweet_dict(text):
     metadata = ['username', 'date', 'retweets', 'favorites', 'text', 'geo', 'mentions', 'hashtags', 'id', 'permalink']
