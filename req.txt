@@ -2,7 +2,9 @@ numpy
 pandas
 matplotlib
 pillow
-scrapy
 flask
 pyquery
 jupyter
+requests
+bs4
+treetaggerwrapper
