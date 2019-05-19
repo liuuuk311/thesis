@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import logging
+import csv
 
 logging.basicConfig(format='%(asctime)s: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', filename='replies.log', level=logging.INFO)
 
@@ -57,7 +58,13 @@ def extract_replies(username, statusId):
     return replies_list
 
 if __name__ == "__main__":
-    replies_list = extract_replies('matteosalvinimi', '1128423834057572353')
-    print('Replies: ' + str(len(replies_list)))
-   # for reply in replies_list:
-    #     print(reply)
+    userId = 'matteosalvinimi'
+    statusId = '1128423834057572353'
+    replies_list = extract_replies(userId, statusId)
+
+    print('Got {0} replies'.format(len(replies_list)))
+
+    filename = 'replies' + userId + '_' + statusId + '.csv'
+    with open('data/' + filename, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(replies_list)
