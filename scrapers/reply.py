@@ -4,6 +4,7 @@ import json
 import logging
 import csv
 import datetime
+import argparse
 
 logging.basicConfig(format='%(asctime)s: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', filename='replies.log', level=logging.INFO)
 
@@ -57,7 +58,6 @@ def extract_replies(username, statusId):
     res = requests.get(baseURL)
     soup = BeautifulSoup(res.text, 'html.parser')
 
-    # replies_list = get_reply(soup, username)
     replies_list = extract_info(soup, username)
 
 
@@ -75,7 +75,6 @@ def extract_replies(username, statusId):
         min_pos = res['min_position']
 
         soup = BeautifulSoup(res['items_html'], 'html.parser')
-        # replies_list += get_reply(soup, username)
         replies_list += extract_info(soup, username)
 
         logging.info('Reply list ' + str(len(replies_list)))
@@ -83,13 +82,27 @@ def extract_replies(username, statusId):
     return replies_list
 
 if __name__ == "__main__":
-    userId = 'matteosalvinimi'
-    statusId = '1128423834057572353'
-    replies_list = extract_replies(userId, statusId)
+    parser = argparse.ArgumentParser(description='Get all replies from a public Tweet.')
+    parser.add_argument('-u', '--username', type=str, help='A Twitter username, without @', required=True, metavar='<username>')
+    parser.add_argument('-s', '--status-id', type=str, help='The status id of a public Tweet. You can get the status id from the Tweet url', required=True, metavar='<statusId>')
+    parser.add_argument('-o', '--output', type=str, help='The output filename. Default replies_<username>_<status_id>.csv')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    args = parser.parse_args()
+    
 
-    print('Got {0} replies'.format(len(replies_list)))
+    replies_list = extract_replies(args.username, args.status_id)
 
-    filename = 'replies_.csv'
-    with open('data/' + filename, 'w') as f:
+    if args.verbose:
+        print('Got {0} replies'.format(len(replies_list)))
+
+    
+    filename = 'replies_' + args.username + '_' + args.status_id + '.csv'
+    if args.output is not None:
+        filename = args.output
+
+    with open(filename, 'w') as f:
         writer = csv.writer(f)
         writer.writerows(replies_list)
+
+    if args.verbose:
+        print('Output saved in {0}'.format(filename))
