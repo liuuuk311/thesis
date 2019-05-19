@@ -7,31 +7,14 @@ import datetime
 
 logging.basicConfig(format='%(asctime)s: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', filename='replies.log', level=logging.INFO)
 
-
-def get_reply(soup, user):
-    replies = soup.find_all('div', {'class': 'ReplyingToContextBelowAuthor'})
-
-    res = []
-
-    for reply in replies:
-        reply_to = reply.find('a').get('href')
-        logging.info('Checking message replies to ' + user)
-        if user in reply_to:
-            logging.info('New reply found')
-            res.append(reply.parent.find(
-                'p', {'class': 'tweet-text'}).get_text())
-
-    return res
-
-
 def extract_info(soup, user):
     replies = soup.find_all('div', {'class': 'content'})
 
     res = []
 
     for reply in replies:
-        name = reply.find('span', {'class' : 'FullNameGroup'}).get_text()
-        user = reply.find('span', {'class' : 'username'}).get_text()
+        name = reply.find('span', {'class' : 'FullNameGroup'}).get_text().strip()
+        user = reply.find('span', {'class' : 'username'}).get_text().strip()
 
         replyTo = reply.find('div', {'class' : 'ReplyingToContextBelowAuthor'})
         if replyTo is not None: 
@@ -106,7 +89,7 @@ if __name__ == "__main__":
 
     print('Got {0} replies'.format(len(replies_list)))
 
-    filename = 'replies_' + userId + '_' + statusId + '.csv'
+    filename = 'replies_.csv'
     with open('data/' + filename, 'w') as f:
         writer = csv.writer(f)
         writer.writerows(replies_list)
