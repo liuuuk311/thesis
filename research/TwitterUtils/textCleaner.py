@@ -1,6 +1,7 @@
 import re
 
 def clean(text):
+    text = str(text)
     text = " ".join(text.splitlines())
 
     text = text.replace('# ', '#')

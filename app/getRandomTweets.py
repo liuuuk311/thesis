@@ -9,7 +9,7 @@ files = [f for f in glob.glob("data/*.csv", recursive=False)]
 # files.remove('data/final.csv')
 
 def get_tweet_dict(text):
-    metadata = ['username', 'date', 'retweets', 'favorites', 'text', 'geo', 'mentions', 'hashtags', 'id', 'permalink']
+    metadata = ['username', 'date', 'text', 'id', 'permalink']
    
     tweet = {}
     for i, m in enumerate(metadata):
@@ -27,8 +27,9 @@ def get_rand_tweet(debug=False):
 
     offset = random.randint(1, filesize)
     try:
-        f = open(rand_file)
-        f.seek(offset)                  #go to random position
+        # f = open(rand_file)
+        f = open('data/barcone15-16_copy.csv')
+        f.seek(offset)                  # go to random position
         f.readline()                    # discard - bound to be partial line
         rand_line = f.readline()        # bingo!
 
@@ -45,8 +46,8 @@ def get_rand_tweet(debug=False):
 
         if len(splitted) == 10:
             splitted[4] = clean(splitted[4])
-            tweet = get_tweet_dict(splitted)
-        
+            # tweet = get_tweet_dict(splitted)
+            tweet = get_tweet_dict('prova a b c')
             return tweet
         else:
             get_rand_tweet(debug)

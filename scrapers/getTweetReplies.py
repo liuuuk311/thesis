@@ -6,7 +6,7 @@ import csv
 import datetime
 import argparse
 
-logging.basicConfig(format='%(asctime)s: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', filename='replies.log', level=logging.INFO)
+
 
 def extract_info(soup, user):
     replies = soup.find_all('div', {'class': 'content'})
@@ -60,7 +60,6 @@ def extract_replies(username, statusId):
 
     replies_list = extract_info(soup, username)
 
-
     logging.info('Reply list ' + str(len(replies_list)))
 
     div = soup.find('div', {'class': 'stream-container'})
@@ -70,7 +69,7 @@ def extract_replies(username, statusId):
     while min_pos is not None:
         logging.info('Looking for next data. Min position ' + str(min_pos))
         logging.info('Getting ' + getNextURL + min_pos)
-        res = requests.get(getNextURL + min_pos)
+        res = requests.get(getNextURL + min_pos)    
         res = json.loads(res.text)
         min_pos = res['min_position']
 
@@ -87,8 +86,15 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--status-id', type=str, help='The status id of a public Tweet. You can get the status id from the Tweet url', required=True, metavar='<statusId>')
     parser.add_argument('-o', '--output', type=str, help='The output filename. Default replies_<username>_<status_id>.csv')
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-d', '--debug', action='store_true')
     args = parser.parse_args()
     
+    if args.debug:
+        logging.basicConfig(format='%(asctime)s: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', filename='replies.log', level=logging.INFO)
+
+    if args.verbose:
+        print('Getting replies from @{0}'.format(args.username, args.status_id))
+        print('Url: https://twitter.com/{0}/status/{1}'.format(args.username, args.status_id))
 
     replies_list = extract_replies(args.username, args.status_id)
 
@@ -101,7 +107,8 @@ if __name__ == "__main__":
         filename = args.output
 
     with open(filename, 'w') as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(['name', 'user', 'replyTo', 'date', 'text', 'commentCount', 'retweetCount', 'favouriteCount'])
         writer.writerows(replies_list)
 
     if args.verbose:
