@@ -4,6 +4,9 @@
 
 {% block content %}
 {% if tweet %}
+<div class="progress">
+  <div class="progress-bar" role="progressbar" style="width: {{ progress }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+</div>
 <p class="text-center">Come giudichi questo Tweet?</p>
 <h1 class="text-center">{{ tweet['text'] }}</h1>
 

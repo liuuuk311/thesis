@@ -1,0 +1,16 @@
+<!doctype html>
+{% extends "layout.html" %}
+{% block title %}Benvenuto{% endblock %}
+
+{% block content %}
+<form method="post">
+    <p><input type="hidden" name="userId" id="myField">
+    <p><input type="submit" value="Login">
+</form>
+<script type="text/javascript">
+    function randomID() {
+        return 'id-' + Math.random().toString(36).substr(2, 30); 
+    };
+    document.getElementById('myField').value = randomID() + '-' + Date.now();
+</script>
+{% endblock %}
