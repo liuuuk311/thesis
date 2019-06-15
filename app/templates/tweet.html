@@ -4,31 +4,46 @@
 
 {% block content %}
 {% if tweet %}
-<div class="progress">
-  <div class="progress-bar" role="progressbar" style="width: {{ progress }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-</div>
-<p class="text-center">Come giudichi questo Tweet?</p>
-<h1 class="text-center">{{ tweet['text'] }}</h1>
 
+<div class="container-fluid overflow-auto">
+  <p class="text-center lead">Come giudichi questo Tweet?</p>
+  <!-- <p class="h2"></p> -->
+  <blockquote class="blockquote text-center">
+    <p class="mb-0">{{ tweet['text'] }}</p>
+  </blockquote>
+</div>
 <form action="/" method="POST">
   {% for t in tweet %}
   <input type="hidden" name="{{ t }}" value="{{ tweet[t] }}">
   {% endfor %}
-  <div class="row my-5">
-    <div class="col text-center">
-      <input type="submit" name="submit_button"
-        value="Positivo" class="btn btn-outline-primary"></div>
-    <div class="col text-center">
-      <input type="submit" name="submit_button"
-        value="Neutro" class="btn btn-outline-primary"></div>
-    <div class="col text-center">
-      <input type="submit" name="submit_button"
-        value="Negativo" class="btn btn-outline-primary"></div>
-  </div>
-  <div class="row my-5">
-    <div class="col text-center">
-      <input type="submit" name="submit_button" value="Non è in italiano?"
-        class="btn btn-outline-secondary">
+  <div class="container">
+    <div class="row my-5">
+      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
+        my-md-1 my-lg-1 text-center">
+        <input type="submit" name="submit_button"
+          value="Positivo" class="btn btn-outline-primary btn-xl btn-block"></div>
+      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
+        my-md-1 my-lg-1 text-center">
+        <input type="submit" name="submit_button"
+          value="Neutro" class="btn btn-outline-primary btn-xl btn-block"></div>
+      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
+        my-md-1 my-lg-1 text-center">
+        <input type="submit" name="submit_button"
+          value="Negativo" class="btn btn-outline-primary btn-xl btn-block"></div>
+    </div>
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" style="width: {{ progress
+        }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0"
+        aria-valuemax="100"></div>
+    </div>
+    <div class="row my-5">
+      <div class="col-sm text-center">
+        <button type="submit" name="submit_button" value="errore"
+          class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="top" title="Se il Tweet contiene errori, segnalalo di modo che possa essere scartato dallo studio">
+          Il Tweet contiene errori
+        </button>
+
+      </div>
     </div>
   </div>
 </form>
@@ -37,7 +52,7 @@
 <h1 class="text-center">😢</h1>
 <form action="/" method="GET">
   <div class="row my-5">
-    <div class="col text-center">
+    <div class="col-sm text-center">
       <input type="submit" name="submit_button" value="Riprova"
         class="btn btn-outline-secondary">
     </div>

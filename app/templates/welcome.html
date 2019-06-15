@@ -3,11 +3,38 @@
 {% block title %}Benvenuto{% endblock %}
 
 {% block content %}
-<form method="post">
-    <p><input type="hidden" name="userId" id="myField">
-    <p><input type="submit" value="Login">
-</form>
-<script type="text/javascript">
+<div class="jumbotron jumbotron-fluid">
+        <div class="container">
+            <h3>Istruzioni</h3>
+            <p  class="text-justify">Ci serve il tuo aiuto per poter addestrare degli algoritmi di text mining.
+                Lo scopo di questa parte del progetto di tesi è quello di classificare alcuni Tweet, 
+                per valutare l'influenza che i politici esercitano attraverso i social network.
+            </p>
+            <p  class="text-justify">
+                Il tuo compito è quindi quello di leggere i Tweet che ti vengono proposti ed esprimire la tua opinione sulla base
+                del messaggio. Per ogni Tweet <span class="font-weight-bold text-justify">dovrai esprimire un giudizio positivo, neutro o negativo. </span>
+                Non ci sono risposte giuste o sbagliate, esprimi la tua opinione. 
+
+            </p>
+            <p  class="text-justify">
+                Ti verranno proposti 30 Tweet uno dopo l'altro, per completare tutto non ci vorrà più di 5 minuti.
+            </p>
+        </div>
+    </div>
+<div class="container">
+    <div class="row my-5">
+        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 my-2 my-sm-2
+            my-md-1 my-lg-1 text-center">
+            <form method="post">
+                <p><input type="hidden" name="userId" id="myField">
+                    <p><input type="submit" value="Comincia" class="btn
+                            btn-outline-primary btn-xl btn-block">
+                    </form>
+                </div>
+                </div>
+</div>
+
+                <script type="text/javascript">
     function randomID() {
         return 'id-' + Math.random().toString(36).substr(2, 30); 
     };

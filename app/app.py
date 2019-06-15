@@ -67,9 +67,12 @@ def index():
     df.to_csv(filename, sep=';', index=False)
     myrow = df[df['annotatorCount'] < 5].sample(1)
     
-    if 'userId' in session:
+    if 'userId' in session and myprgoress <= 100:
         return render_template('tweet.html', tweet=myrow.to_dict('records')[0], progress=myprgoress)
-    return redirect(url_for('welcome'))
+    elif 'userId' in session and myprgoress > 100:
+        return redirect('/thank-you')
+    else:
+        return redirect('/start')
 
     # 
 
@@ -83,11 +86,11 @@ def login():
     return render_template('welcome.html')
 
 
-@app.route('/logout')
+@app.route('/thank-you')
 def logout():
     # remove the username from the session if it's there
     session.pop('userId', None)
-    return redirect(url_for('index'))
+    return render_template('thank-you.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
