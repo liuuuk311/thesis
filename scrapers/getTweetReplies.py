@@ -6,6 +6,7 @@ import csv
 import datetime
 import argparse
 
+from textCleaner import clean
 
 
 def extract_info(soup, user):
@@ -14,6 +15,8 @@ def extract_info(soup, user):
     res = []
 
     for reply in replies:
+        tweetId = reply.parent['data-tweet-id']
+        
         name = reply.find('span', {'class' : 'FullNameGroup'}).get_text().strip()
         user = reply.find('span', {'class' : 'username'}).get_text().strip()
 
@@ -40,8 +43,9 @@ def extract_info(soup, user):
             retweetCount = actions[1].get_text()
             favouriteCount = actions[3].get_text() 
             
-        
-        res.append([name, user, replyTo, date, text, commentCount, retweetCount, favouriteCount])
+        if text is not None:
+            res.append([tweetId, name, user, replyTo, date, text, clean(text), commentCount, retweetCount, favouriteCount])
+
 
     return res
 
@@ -85,6 +89,7 @@ if __name__ == "__main__":
     parser.add_argument('-u', '--username', type=str, help='A Twitter username, without @', required=True, metavar='<username>')
     parser.add_argument('-s', '--status-id', type=str, help='The status id of a public Tweet. You can get the status id from the Tweet url', required=True, metavar='<statusId>')
     parser.add_argument('-o', '--output', type=str, help='The output filename. Default replies_<username>_<status_id>.csv')
+    parser.add_argument('--header', action='store_true', help='')
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-d', '--debug', action='store_true')
     args = parser.parse_args()
@@ -108,7 +113,8 @@ if __name__ == "__main__":
 
     with open(filename, 'w') as f:
         writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['name', 'user', 'replyTo', 'date', 'text', 'commentCount', 'retweetCount', 'favouriteCount'])
+        if args.header:
+            writer.writerow(['id', 'name', 'user', 'replyTo', 'date', 'rawText', 'text', 'commentCount', 'retweetCount', 'favouriteCount'])
         writer.writerows(replies_list)
 
     if args.verbose:
