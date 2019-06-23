@@ -1,0 +1,36 @@
+<!doctype html>
+{% extends "layout.html" %}
+{% block title %}Statistiche del dataset{% endblock %}
+
+{% block content %}
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <tbody>
+                    <tr>
+                        <th scope="row">Numero di Tweet totali</th>
+                        <td>{{ total_count }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Numero di Tweet giudicati</th>
+                        <td>{{ done_count }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Numero di Tweet non ancora giudicati</th>
+                        <td>{{ todo_count }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Numero di persone intervistate</th>
+                        <td>{{ people_done_count }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Numero di persone necessarie per finire</th>
+                        <td>{{ people_todo_count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

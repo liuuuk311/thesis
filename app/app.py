@@ -7,8 +7,7 @@ import numpy as np
 import csv
 
 
-
-filename = 'data/test.csv'
+filename = 'data/training/dataset.csv'
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -23,6 +22,7 @@ for i in range(1, 6):
     df['annotation' + str(i)] = np.nan
 df.annotatorCount.fillna(0, inplace=True)
 df.to_csv(filename, sep=';', index=False)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -52,35 +52,33 @@ def index():
         count = df.loc[df.id == myId]['annotatorCount'].values[0]
         colname = 'annotation' + str(int(count))
         df.loc[df.id == myId, colname] = polarity
-    
+
         session[session['userId'] + '-ans'].append(myId)
         session[session['userId'] + '-ans'] = session[session['userId'] + '-ans']
 
-        myprogress = int((len(session[session['userId']+ '-ans']) / 30 ) * 100)
-        
-    df.to_csv(filename, sep=';', index=False)
-    
+        myprogress = int((len(session[session['userId'] + '-ans']) / 30) * 100)
+
+    if not app.config['DEBUG']:
+        df.to_csv(filename, sep=';', index=False)
 
     # Subset of tweets which the user hasn't annotated yet
     if 'userId' in session and len(session[session['userId'] + '-ans']) > 0:
         df = df[~df['id'].isin(session[session['userId'] + '-ans'])]
-        
+
     # Subset of tweets which have less then 5 annoatation and have some text
-    df = df[df['annotatorCount'] < 5 & ~df['text'].isna()] 
+    df = df[df['annotatorCount'] < 5 & ~df['text'].isna()]
 
     if len(df.index) == 0:
-        return redirect('/end') # We have no more tweet to show at this user
-    
+        return redirect('/end')  # We have no more tweet to show at this user
+
     myrow = df.sample(1)
-    
+
     if 'userId' in session and myprogress < 100:
         return render_template('tweet.html', tweet=myrow.to_dict('records')[0], progress=myprogress)
     elif 'userId' in session and myprogress >= 100:
         return redirect('/thank-you')
     else:
         return redirect('/start')
-
-
 
 
 @app.route('/start', methods=['GET', 'POST'])
@@ -95,8 +93,11 @@ def login():
 @app.route('/thank-you')
 def logout():
     # remove the username from the session if it's there
-    clearSession()
-    return render_template('thank-you.html')
+    if 'userId' in session:
+        clearSession()
+        return render_template('thank-you.html')
+    else:
+        return redirect('/start')
 
 @app.route('/end')
 def end():
@@ -104,10 +105,31 @@ def end():
     return render_template('end.html')
 
 
+@app.route('/stats')
+def stats():
+    df = pd.read_csv(filename, sep=';')
+    total_count = len(df)
+    done_count = len(df[df['annotatorCount'] > 0])
+    todo_count = len(df[df['annotatorCount'] == 0])
+    people_done_count = round(len(df[df['annotatorCount'] > 0])/30)
+    people_todo_count = round(( len(df[df['annotation1'].isna()]) +
+                                len(df[df['annotation2'].isna()]) +
+                                len(df[df['annotation3'].isna()]) +
+                                len(df[df['annotation4'].isna()]) +
+                                len(df[df['annotation5'].isna()])) /30)
+
+    return render_template('stats.html',    total_count=total_count, 
+                                            done_count=done_count, 
+                                            todo_count=todo_count, 
+                                            people_done_count=people_done_count, 
+                                            people_todo_count=people_todo_count)
+
 
 # Helper
 def clearSession():
-    session.pop(session['userId']+ '-ans', None)
+    session.pop(session['userId'] + '-ans', None)
     session.pop('userId', None)
+
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -28,8 +28,16 @@ def extract_info(soup, user):
         date = datetime.datetime.fromtimestamp(int(timestamp)/1000)  
 
         text = reply.find('p', {'class' : 'tweet-text'})
+
         if text is not None: 
+            emojis = text.find_all('img', {'class': 'Emoji'})
             text = text.get_text().strip()
+            
+            emoji_list = []
+            for emoji in emojis:
+                emoji_list.append(emoji['alt'])
+            
+            text = text + ' '.join(emoji_list)
 
         actions = reply.find_all('span', {'class' : 'ProfileTweet-actionCountForPresentation'})
         
@@ -115,6 +123,7 @@ if __name__ == "__main__":
         writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         if args.header:
             writer.writerow(['id', 'name', 'user', 'replyTo', 'date', 'rawText', 'text', 'commentCount', 'retweetCount', 'favouriteCount'])
+
         writer.writerows(replies_list)
 
     if args.verbose:
