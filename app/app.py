@@ -7,21 +7,23 @@ import numpy as np
 import csv
 
 
-filename = 'data/training/dataset.csv'
+filename = './data/dataset.csv'
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+app.config['DEBUG'] = False
 
 # Set the secret key to some random bytes. Keep this really secret!
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 # Just the first time
-df = pd.read_csv(filename, sep=';')
-df['annotatorCount'] = np.nan
-for i in range(1, 6):
-    df['annotation' + str(i)] = np.nan
-df.annotatorCount.fillna(0, inplace=True)
-df.to_csv(filename, sep=';', index=False)
+if app.config['DEBUG']:
+    df = pd.read_csv(filename, sep=';')
+    df['isValid'] = 1
+    df['annotatorCount'] = np.nan
+    for i in range(1, 6):
+        df['annotation' + str(i)] = np.nan
+    df.annotatorCount.fillna(0, inplace=True)
+    df.to_csv(filename, sep=';', index=False)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -49,6 +51,7 @@ def index():
         myId = request.form['id'].replace('"', '')
 
         df.loc[df.id == myId, 'annotatorCount'] += 1
+        df.loc[df.id == myId, 'isValid'] = isValid
         count = df.loc[df.id == myId]['annotatorCount'].values[0]
         colname = 'annotation' + str(int(count))
         df.loc[df.id == myId, colname] = polarity
@@ -66,7 +69,7 @@ def index():
         df = df[~df['id'].isin(session[session['userId'] + '-ans'])]
 
     # Subset of tweets which have less then 5 annoatation and have some text
-    df = df[df['annotatorCount'] < 5 & ~df['text'].isna()]
+    df = df[df['annotatorCount'] < 5 & ~df['text'].isna() & df['isValid'] == 1]
 
     if len(df.index) == 0:
         return redirect('/end')  # We have no more tweet to show at this user
@@ -132,4 +135,4 @@ def clearSession():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
