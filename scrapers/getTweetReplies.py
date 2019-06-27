@@ -8,15 +8,26 @@ import argparse
 
 from textCleaner import clean
 
+def extract_parent_tweet(soup):
+    mainTweet = soup.find('div', {'class': 'permalink-tweet-container'})
+    if mainTweet:
+        mainTweet = mainTweet.find('div', {'class': 'tweet'})
+        parentId = mainTweet['data-tweet-id']
+        rawParentText = mainTweet.find('p', {'class' : 'tweet-text'}).get_text().strip().replace('\n', '')
+        parentText = clean(rawParentText)
+
+    return [parentId, rawParentText, parentText]
+
 
 def extract_info(soup, user):
+    
     replies = soup.find_all('div', {'class': 'content'})
 
     res = []
 
     for reply in replies:
         tweetId = reply.parent['data-tweet-id']
-        
+
         name = reply.find('span', {'class' : 'FullNameGroup'}).get_text().strip()
         user = reply.find('span', {'class' : 'username'}).get_text().strip()
 
@@ -31,7 +42,7 @@ def extract_info(soup, user):
 
         if text is not None: 
             emojis = text.find_all('img', {'class': 'Emoji'})
-            text = text.get_text().strip()
+            text = text.get_text().strip().replace('\n', ' ')
             
             emoji_list = []
             for emoji in emojis:
@@ -70,14 +81,20 @@ def extract_replies(username, statusId):
     res = requests.get(baseURL)
     soup = BeautifulSoup(res.text, 'html.parser')
 
+    rtn_list = []  
+
+    main_tweet = extract_parent_tweet(soup)
     replies_list = extract_info(soup, username)
+    
+    for reply in replies_list:
+        rtn_list.append(reply + main_tweet)
+        
 
     logging.info('Reply list ' + str(len(replies_list)))
 
     div = soup.find('div', {'class': 'stream-container'})
     min_pos = div['data-min-position']
 
-    
     while min_pos is not None:
         logging.info('Looking for next data. Min position ' + str(min_pos))
         logging.info('Getting ' + getNextURL + min_pos)
@@ -86,11 +103,13 @@ def extract_replies(username, statusId):
         min_pos = res['min_position']
 
         soup = BeautifulSoup(res['items_html'], 'html.parser')
-        replies_list += extract_info(soup, username)
+        replies_list = extract_info(soup, username)
+        for reply in replies_list:
+            rtn_list.append(reply + main_tweet)
 
         logging.info('Reply list ' + str(len(replies_list)))
 
-    return replies_list
+    return rtn_list
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Get all replies from a public Tweet.')
@@ -122,7 +141,7 @@ if __name__ == "__main__":
     with open(filename, 'w') as f:
         writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         if args.header:
-            writer.writerow(['id', 'name', 'user', 'replyTo', 'date', 'rawText', 'text', 'commentCount', 'retweetCount', 'favouriteCount'])
+            writer.writerow(['id', 'name', 'user', 'userId' 'replyTo', 'date', 'rawText', 'text', 'commentCount', 'retweetCount', 'favouriteCount', 'parentId', 'rawParentText', 'parentText'])
 
         writer.writerows(replies_list)
 

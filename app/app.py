@@ -10,7 +10,7 @@ import csv
 filename = './data/dataset.csv'
 
 app = Flask(__name__)
-app.config['DEBUG'] = False
+app.config['DEBUG'] = True
 
 # Set the secret key to some random bytes. Keep this really secret!
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -69,12 +69,14 @@ def index():
         df = df[~df['id'].isin(session[session['userId'] + '-ans'])]
 
     # Subset of tweets which have less then 5 annoatation and have some text
-    df = df[df['annotatorCount'] < 5 & ~df['text'].isna() & df['isValid'] == 1]
+    df = df[(df['annotatorCount'] < 5 & ~df['text'].isna()) & df['isValid'] != 0]
 
     if len(df.index) == 0:
         return redirect('/end')  # We have no more tweet to show at this user
 
     myrow = df.sample(1)
+
+    print(myrow['parentText'])
 
     if 'userId' in session and myprogress < 100:
         return render_template('tweet.html', tweet=myrow.to_dict('records')[0], progress=myprogress)
@@ -135,4 +137,4 @@ def clearSession():
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

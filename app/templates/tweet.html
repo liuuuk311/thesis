@@ -4,9 +4,15 @@
 
 {% block content %}
 {% if tweet %}
-
 <div class="container-fluid overflow-auto">
-  <p class="text-center lead">Come giudichi questo Tweet?</p>
+  <p class="text-center lead">Rispetto a questo Tweet</p>
+  <!-- <p class="h2"></p> -->
+  <blockquote class="blockquote text-center">
+    <p class="mb-0">{{ tweet['parentText'] }}</p>
+  </blockquote>
+</div>
+<div class="container-fluid overflow-auto">
+  <p class="text-center lead">Come giudichi questa risposta?</p>
   <!-- <p class="h2"></p> -->
   <blockquote class="blockquote text-center">
     <p class="mb-0">{{ tweet['text'] }}</p>
@@ -21,15 +27,15 @@
       <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
         my-md-1 my-lg-1 text-center">
         <input type="submit" name="submit_button"
-          value="Positivo" class="btn btn-outline-primary btn-xl btn-block"></div>
+          value="Positiva" class="btn btn-outline-primary btn-xl btn-block"></div>
       <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
         my-md-1 my-lg-1 text-center">
         <input type="submit" name="submit_button"
-          value="Neutro" class="btn btn-outline-primary btn-xl btn-block"></div>
+          value="Neutra" class="btn btn-outline-primary btn-xl btn-block"></div>
       <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
         my-md-1 my-lg-1 text-center">
         <input type="submit" name="submit_button"
-          value="Negativo" class="btn btn-outline-primary btn-xl btn-block"></div>
+          value="Negativa" class="btn btn-outline-primary btn-xl btn-block"></div>
     </div>
     <div class="progress">
       <div class="progress-bar" role="progressbar" style="width: {{ progress
