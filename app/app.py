@@ -6,17 +6,27 @@ import pandas as pd
 import numpy as np
 import csv
 
+import os
+import psycopg2
+from sqlalchemy import create_engine
+
+# os.environ["DATABASE_URL"] = "bsquuuxfulbdet:74a62e2386f93628d98bdfe28818b842264aefff63f743313c2b7ff8e09b138d@ec2-54-228-246-214.eu-west-1.compute.amazonaws.com:5432/dlb44esdgbdtv"
+DATABASE_URL = os.environ['DATABASE_URL']
+
+engine = create_engine(DATABASE_URL,pool_size=10, max_overflow=20)
 
 filename = './data/dataset.csv'
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+app.config['DEBUG'] = False
+create = False
 
 # Set the secret key to some random bytes. Keep this really secret!
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 # Just the first time
-if app.config['DEBUG']:
+if app.config['DEBUG'] and create:
+    print('Reading the file...')
     df = pd.read_csv(filename, sep=';')
     df['isValid'] = 1
     df['annotatorCount'] = np.nan
@@ -24,12 +34,15 @@ if app.config['DEBUG']:
         df['annotation' + str(i)] = np.nan
     df.annotatorCount.fillna(0, inplace=True)
     df.to_csv(filename, sep=';', index=False)
+    df.to_sql('dataset', engine, if_exists='replace')
+
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
-    df = pd.read_csv(filename, sep=';')
+    # df = pd.read_csv(filename, sep=';')
+    df = pd.read_sql_table('dataset', engine)
     df.id = df.id.map(lambda x: '{:.0f}'.format(x))
     df.id = df.id.astype(str)
 
@@ -38,15 +51,15 @@ def index():
         isValid = 1
 
         value = request.form['submit_button']
-        if value.lower() == 'positivo':
+        if value.lower() == 'positiva':
             polarity = 1
-        elif value.lower() == 'neutro':
+        elif value.lower() == 'neutra':
             polarity = 0
-        elif value.lower() == 'negativo':
+        elif value.lower() == 'negativa':
             polarity = -1
         else:
             isValid = 0
-            polarity = ''
+            polarity = 'NULL'
 
         myId = request.form['id'].replace('"', '')
 
@@ -61,22 +74,38 @@ def index():
 
         myprogress = int((len(session[session['userId'] + '-ans']) / 30) * 100)
 
-    if not app.config['DEBUG']:
-        df.to_csv(filename, sep=';', index=False)
+
+        if not app.config['DEBUG'] and count <= 5:
+            # df.to_csv(filename, sep=';', index=False)
+            connection = engine.connect()
+            sql_stmt = """
+            UPDATE dataset
+                SET "annotatorCount" = {0},
+                    "isValid" = {1},
+                    "{2}" = {3}
+            WHERE id = {4}
+            """.format(df.loc[df.id == myId, 'annotatorCount'].values[0], 
+                        df.loc[df.id == myId, 'isValid'].values[0], 
+                        colname, 
+                        df.loc[df.id == myId, colname].values[0], 
+                        myId)
+            connection.execute(sql_stmt)
+            connection.close()
+            
 
     # Subset of tweets which the user hasn't annotated yet
     if 'userId' in session and len(session[session['userId'] + '-ans']) > 0:
         df = df[~df['id'].isin(session[session['userId'] + '-ans'])]
 
     # Subset of tweets which have less then 5 annoatation and have some text
-    df = df[(df['annotatorCount'] < 5 & ~df['text'].isna()) & df['isValid'] != 0]
+    df = df[(df['annotatorCount'] <= 5 & ~df['text'].isna()) & df['isValid'] != 0]
 
     if len(df.index) == 0:
         return redirect('/end')  # We have no more tweet to show at this user
 
     myrow = df.sample(1)
 
-    print(myrow['parentText'])
+    
 
     if 'userId' in session and myprogress < 100:
         return render_template('tweet.html', tweet=myrow.to_dict('records')[0], progress=myprogress)
@@ -106,13 +135,18 @@ def logout():
 
 @app.route('/end')
 def end():
-    clearSession()
-    return render_template('end.html')
+    if 'userId' in session:
+        clearSession()
+        return render_template('end.html')
+    else:
+        return redirect('/start')
+    
 
 
 @app.route('/stats')
 def stats():
-    df = pd.read_csv(filename, sep=';')
+    # df = pd.read_csv(filename, sep=';')
+    df = pd.read_sql_table('dataset', engine)
     total_count = len(df)
     done_count = len(df[df['annotatorCount'] > 0])
     todo_count = len(df[df['annotatorCount'] == 0])
