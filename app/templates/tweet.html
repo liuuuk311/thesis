@@ -12,14 +12,28 @@
 </div>
 
 <div class="content">
-  <div class="container-fluid overflow-auto">
+  <div class="container-fluid overflow-auto t1">
     <p class="text-center lead">Rispetto a questo Tweet</p>
     <!-- <p class="h2"></p> -->
     <blockquote class="blockquote text-center">
       <p class="mb-0">{{ tweet['parentText'] }}</p>
     </blockquote>
   </div>
-  <div class="container-fluid overflow-auto">
+  <div class="container-fluid overflow-auto t2">
+    <p class="text-center lead">Come giudichi questa risposta?</p>
+    <!-- <p class="h2"></p> -->
+    <blockquote class="blockquote text-center">
+      <p class="mb-0">{{ tweet['text'] }}</p>
+    </blockquote>
+  </div>
+  <div class="container-fluid overflow-auto t3">
+    <p class="text-center lead">Come giudichi questa risposta?</p>
+    <!-- <p class="h2"></p> -->
+    <blockquote class="blockquote text-center">
+      <p class="mb-0">{{ tweet['text'] }}</p>
+    </blockquote>
+  </div>
+  <div class="container-fluid overflow-auto t4">
     <p class="text-center lead">Come giudichi questa risposta?</p>
     <!-- <p class="h2"></p> -->
     <blockquote class="blockquote text-center">
@@ -32,18 +46,14 @@
     {% endfor %}
     <div class="container">
       <div class="row my-5">
-        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
+        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 my-2 my-sm-2
           my-md-1 my-lg-1 text-center">
-          <input type="submit" name="submit_button" 
-            value="Positiva" class="btn btn-outline-primary btn-xl btn-block"></div>
-        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
+          <button type="submit" name="submit_button" 
+            value="1" class="btn btn-outline-primary btn-xl btn-block">D'accordo</button></div>
+        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 my-2 my-sm-2
           my-md-1 my-lg-1 text-center">
-          <input type="submit" name="submit_button" 
-            value="Neutra" class="btn btn-outline-primary btn-xl btn-block"></div>
-        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 my-2 my-sm-2
-          my-md-1 my-lg-1 text-center">
-          <input type="submit" name="submit_button" 
-            value="Negativa" class="btn btn-outline-primary btn-xl btn-block"></div>
+          <button type="submit" name="submit_button" 
+            value="-1" class="btn btn-outline-primary btn-xl btn-block">In disaccordo</button></div>
       </div>
       <div class="progress">
         <div class="progress-bar" role="progressbar" style="width: {{ progress
@@ -81,10 +91,13 @@
 <script type="text/javascript">
 $(document).ready(function() { 
   $('.loading').hide();
+  $('.t2').hide();
+  $('.t3').hide();
+  $('.t4').hide();
   $('.btn').on('click', function() {
-  $('.content').hide();
-  $('.loading').show();
-});
+    $('.content').hide();
+    $('.loading').show();
+  });
 });
 
 </script>
