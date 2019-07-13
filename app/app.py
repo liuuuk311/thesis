@@ -52,8 +52,9 @@ def close_db(error):
 def login():
     if request.method == 'POST':
         session['userId'] = request.form['userId']
-        session[session['userId'] + '-ans'] = []
-    
+        session[session['userId'] + '-not-in-list'] = []
+        session[session['userId'] + '-count'] = 0
+
         return redirect(url_for('get_index'))
     return render_template('welcome.html')
 
@@ -77,23 +78,30 @@ def save():
 
     
         str_polarity = ""
-        if len(session[session['userId'] + '-ans']) % 4 == 0:
+        if session[session['userId'] + '-count'] % 4 == 0:
             session['mainPolarity'] = tweet_polarity
         else:
             tweet_polarity = tweet_polarity * session['mainPolarity'] 
             str_polarity = 'DISAGREE' if tweet_polarity < 0 else 'AGREE'
+            query = """
+            MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
+            WHERE a.id = '{}'
+            SET r.polarity = '{}'
+            """.format(tweet_id, str_polarity)
 
-        session[session['userId'] + '-ans'].append(tweet_id)
-        session[session['userId'] + '-ans'] = session[session['userId'] + '-ans']
+            print(query)
+
+            db = get_db()
+            query_result = db.run(query)
+
+        if session[session['userId'] + '-count'] % 4 == 3:
+            session[session['userId'] + '-not-in-list'].append(session[session['userId'] + '-tid'])
+            session[session['userId'] + '-not-in-list'] = session[session['userId'] + '-not-in-list']
         
-        query = """
-        MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
-        WHERE a.id = {tweet_id}
-        SET r.polarity = {polarity}
-        """
 
-        db = get_db()
-        query_result = db.run(query, tweet_id=tweet_id, polarity=str_polarity)
+        session[session['userId'] + '-count'] = session[session['userId'] + '-count'] + 1
+
+        
         return redirect('/next_tweet')
     else:
         return redirect('/start')
@@ -102,29 +110,35 @@ def save():
 @app.route('/next_tweet', methods=['GET']) 
 def get_next_tweet():
     
-    if 'userId' in session:
+    if 'userId' in session and session[session['userId'] + '-count'] < 13:
+        
         
         query = """
         MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
-        WHERE NOT EXISTS (r.polarity)
+        WHERE NOT EXISTS (r.polarity) AND NOT (b.id IN {}) AND a.valid = 1
         RETURN a.id, a.text, r.polarity, b.id, b.text
         ORDER BY a.favouriteCount DESC
         LIMIT 1
-        """#.format(session[session['userId'] + '-ans'])
-
+        """.format(session[session['userId'] + '-not-in-list'])
         
         db = get_db()
         query_result = db.run(query) 
         result = query_result.data()
         
+        if len(result) == 0:
+            return redirect('/thank-you')
 
-        if len(session[session['userId'] + '-ans']) % 4 != 0:
+        if session[session['userId'] + '-count'] % 4 != 0:
             tweet_dict = {'question': 'Rispetto a questa risposta', 'tweet' : {'id': result[0]['a.id'], 'text': result[0]['a.text']}}
         else:
             tweet_dict = {'question': 'Rispetto a questa tweet', 'tweet' : {'id': result[0]['b.id'], 'text': result[0]['b.text']}}
 
+            session[session['userId'] + '-tid'] = result[0]['b.id']
         # return Response(dumps(tweet_dict), mimetype="application/json")
         return render_template('tweet.html', data=tweet_dict)
+
+    elif session[session['userId'] + '-count'] == 12:
+        return redirect('/thank-you')
     else:
         return redirect('/start')
 
@@ -141,7 +155,8 @@ def logout():
 
 # Helper
 def clearSession():
-    session.pop(session['userId'] + '-ans', None)
+    session.pop(session['userId'] + '-not-in-list', None)
+    session.pop(session['userId'] + '-count', None)
     session.pop('userId', None)
 
 

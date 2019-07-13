@@ -55,66 +55,71 @@ def extract_info(soup, mainTweet, username):
     res = []
 
     for reply in replies:
-        tweetId = reply.parent['data-tweet-id']
+        try:
+            tweetId = reply.parent['data-tweet-id']
 
-        name = reply.find(
-            'span', {'class': 'FullNameGroup'}).get_text().strip()
-        user = reply.find('span', {'class': 'username'}).get_text().strip()
+            name = reply.find(
+                'span', {'class': 'FullNameGroup'}).get_text().strip()
+            user = reply.find('span', {'class': 'username'}).get_text().strip()
 
-        replyTo = reply.find('div', {'class': 'ReplyingToContextBelowAuthor'})
-        if replyTo is not None:
-            replyTo = replyTo.get_text().strip()
+            replyTo = reply.find('div', {'class': 'ReplyingToContextBelowAuthor'})
+            if replyTo is not None:
+                replyTo = replyTo.get_text().strip()
 
-        timestamp = reply.find('span', {'class': '_timestamp'})['data-time-ms']
-        date = datetime.datetime.fromtimestamp(int(timestamp)/1000)
+            timestamp = reply.find('span', {'class': '_timestamp'})['data-time-ms']
+            date = datetime.datetime.fromtimestamp(int(timestamp)/1000)
 
-        text = reply.find('p', {'class': 'tweet-text'})
+            text = reply.find('p', {'class': 'tweet-text'})
 
-        if text is not None:
-            emojis = text.find_all('img', {'class': 'Emoji'})
-            text = text.get_text().strip().replace('\n', ' ')
+            if text is not None:
+                emojis = text.find_all('img', {'class': 'Emoji'})
+                text = text.get_text().strip().replace('\n', ' ')
 
-            emoji_list = []
-            for emoji in emojis:
-                emoji_list.append(emoji['alt'])
+                emoji_list = []
+                for emoji in emojis:
+                    emoji_list.append(emoji['alt'])
 
-            text = text + ' '.join(emoji_list)
+                text = text + ' '.join(emoji_list)
 
-        actions = reply.find_all(
-            'span', {'class': 'ProfileTweet-actionCountForPresentation'})
+            actions = reply.find_all(
+                'span', {'class': 'ProfileTweet-actionCountForPresentation'})
 
-        commentCount = 0
-        retweetCount = 0
-        favouriteCount = 0
+            commentCount = 0
+            retweetCount = 0
+            favouriteCount = 0
 
-        if len(actions) > 0:
-            commentCount = actions[0].get_text()
-            retweetCount = actions[1].get_text()
-            favouriteCount = actions[3].get_text()
+            if len(actions) > 0:
+                commentCount = actions[0].get_text()
+                retweetCount = actions[1].get_text()
+                favouriteCount = actions[3].get_text()
 
-        if text is not None and replyTo == 'In risposta a @' + username and len(clean(text)) > 2:
+            if text is not None and replyTo == 'In risposta a @' + username and len(clean(text)) > 2:
 
-            userNode = Node('User',
-                            id=user,
-                            name=name
-                            )
-            graph.merge(userNode, 'User', 'id')
-            replyNode = Node('Tweet',
-                             id=tweetId,
-                             text=clean(text),
-                             date=str(date.strftime('%d/%m/%Y-%H:%M:%S')),
-                             commentCount=commentCount,
-                             retweetCount=retweetCount,
-                             favouriteCount=favouriteCount
-                             )
+                # userNode = Node('User',
+                #                 id=user,
+                #                 name=name
+                #                 )
+                # graph.merge(userNode, 'User', 'id')
+                replyNode = Node('Tweet',
+                                id=tweetId,
+                                text=clean(text),
+                                username=user,
+                                displayName=name,
+                                date=str(date.strftime('%d/%m/%Y-%H:%M:%S')),
+                                commentCount=commentCount,
+                                retweetCount=retweetCount,
+                                favouriteCount=favouriteCount
+                                )
 
-            graph.merge(replyNode, 'Tweet', 'id')
+                graph.merge(replyNode, 'Tweet', 'id')
 
-            WROTE = Relationship.type("WROTE")
-            graph.create(WROTE(userNode, replyNode))
+                # WROTE = Relationship.type("WROTE")
+                # graph.create(WROTE(userNode, replyNode))
 
-            REPLIES = Relationship.type("REPLIES")
-            graph.create(REPLIES(replyNode, mainTweet))
+                REPLIES = Relationship.type("REPLIES")
+                graph.create(REPLIES(replyNode, mainTweet))
+        except:
+            logging.warning('Skipped a reply')
 
 
 def extract_replies(username, statusId):
