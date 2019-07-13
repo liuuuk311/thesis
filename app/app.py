@@ -60,7 +60,7 @@ def get_index():
 @app.route("/save", methods=['POST'])
 def save():
     if 'userId' in session:
-        
+
         # Get parameters
         tweet_id = request.form['id']
         tweet_polarity = int(request.form['polarity'])
@@ -102,10 +102,16 @@ def get_next_tweet():
         query = """
         MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
         WHERE NOT EXISTS (r.polarity) AND NOT (b.id IN {}) AND a.valid = 1
-        RETURN a.id, a.text, r.polarity, b.id, b.text
-        ORDER BY a.favouriteCount DESC
-        LIMIT 1
         """.format(session[session['userId'] + '-not-in-list'])
+
+        if session['userId'] + '-tid' in session.keys() and session[session['userId'] + '-count'] % 4 != 0:
+            query += " AND b.id = '{}'".format(session[session['userId'] + '-tid'])
+
+        query += """
+        RETURN a.id, a.text, r.polarity, b.id, b.text
+        LIMIT 1
+        """
+
         
         # Run the query
         db = get_db()
@@ -118,9 +124,10 @@ def get_next_tweet():
         if session[session['userId'] + '-count'] % 4 != 0:
             tweet_dict = {'question': 'Rispetto a questa risposta', 'tweet' : {'id': result[0]['a.id'], 'text': result[0]['a.text']}}
         else:
-            tweet_dict = {'question': 'Rispetto a questa tweet', 'tweet' : {'id': result[0]['b.id'], 'text': result[0]['b.text']}}
+            tweet_dict = {'question': 'Rispetto a questo tweet', 'tweet' : {'id': result[0]['b.id'], 'text': result[0]['b.text']}}
 
             session[session['userId'] + '-tid'] = result[0]['b.id']
+        
         
         return render_template('tweet.html', data=tweet_dict)
 
