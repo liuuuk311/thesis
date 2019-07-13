@@ -14,7 +14,6 @@ from neo4j import GraphDatabase, basic_auth
 # Misc
 import pandas as pd
 
-
 # Get environment variables
 GRAPHENEDB_URL = os.environ.get("GRAPHENEDB_BOLT_URL")
 GRAPHENEDB_USER = os.environ.get("GRAPHENEDB_BOLT_USER")
@@ -22,14 +21,6 @@ GRAPHENEDB_PASS = os.environ.get("GRAPHENEDB_BOLT_PASSWORD")
 
 # Get a connection to the Graph Database
 driver = GraphDatabase.driver(GRAPHENEDB_URL, auth=basic_auth(GRAPHENEDB_USER, GRAPHENEDB_PASS))
-
-
-# Get environment variable
-# DATABASE_URL = os.environ.get('DATABASE_URL')
-
-# Get a connection to Relation Database
-# sql_engine = create_engine(DATABASE_URL,pool_size=10, max_overflow=20)
-
 
 # Define the app
 app = Flask(__name__)
@@ -62,10 +53,7 @@ def login():
 @app.route('/', methods=['GET']) 
 def get_index():
     if 'userId' in session:
-        
         return redirect('/next_tweet')
-    # elif 'userId' in session and myprogress >= 100:
-    #     return redirect('/thank-you')
     else:
         return redirect('/start')
 
@@ -73,9 +61,9 @@ def get_index():
 def save():
     if 'userId' in session:
         
+        # Get parameters
         tweet_id = request.form['id']
         tweet_polarity = int(request.form['polarity'])
-
     
         str_polarity = ""
         if session[session['userId'] + '-count'] % 4 == 0:
@@ -89,8 +77,7 @@ def save():
             SET r.polarity = '{}'
             """.format(tweet_id, str_polarity)
 
-            print(query)
-
+            # Run the query
             db = get_db()
             query_result = db.run(query)
 
@@ -112,7 +99,6 @@ def get_next_tweet():
     
     if 'userId' in session and session[session['userId'] + '-count'] < 13:
         
-        
         query = """
         MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
         WHERE NOT EXISTS (r.polarity) AND NOT (b.id IN {}) AND a.valid = 1
@@ -121,6 +107,7 @@ def get_next_tweet():
         LIMIT 1
         """.format(session[session['userId'] + '-not-in-list'])
         
+        # Run the query
         db = get_db()
         query_result = db.run(query) 
         result = query_result.data()
@@ -134,7 +121,7 @@ def get_next_tweet():
             tweet_dict = {'question': 'Rispetto a questa tweet', 'tweet' : {'id': result[0]['b.id'], 'text': result[0]['b.text']}}
 
             session[session['userId'] + '-tid'] = result[0]['b.id']
-        # return Response(dumps(tweet_dict), mimetype="application/json")
+        
         return render_template('tweet.html', data=tweet_dict)
 
     elif session[session['userId'] + '-count'] == 12:
