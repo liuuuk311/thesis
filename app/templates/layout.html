@@ -9,12 +9,6 @@
         <!-- jQuery library -->
         <script
             src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <!-- Popper JS -->
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-        <!-- Latest compiled JavaScript -->
-        <script
-            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
         <title>{% block title %}{% endblock %} - Sentiment</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
@@ -39,24 +33,27 @@
             </nav> -->
         </header>
         <div class="jumbotron jumbotron-fluid">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-3">
-                                <img src="{{ url_for('static', filename='images/logo_bicocca.jpg')}}" class="img-thumbnail" />
-                        </div>
-                        <div class="col-9 d-table-cell align-middle"><h3>Progetto di Tesi Magistrale</h3>
-                        </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-3">
+                        <img src="{{ url_for('static',
+                            filename='images/logo_bicocca.jpg')}}"
+                            class="img-thumbnail" />
                     </div>
-                    
+                    <div class="col-9 d-table-cell align-middle"><h3>Progetto di
+                            Tesi Magistrale</h3>
+                    </div>
                 </div>
+
             </div>
+        </div>
 
         <div class="container-fluid">
             <div id="content">{% block content %}{% endblock %}</div>
         </div>
 
 
-        <footer >
+        <footer>
             <div class="jumbotron text-center" style="margin-bottom:0">
                 <div id="footer">
                     {% block footer %}
@@ -65,6 +62,12 @@
                 </div>
             </div>
         </footer>
-
+        
+        <!-- Popper JS -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <!-- Latest compiled JavaScript -->
+        <script
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     </body>
 </html>

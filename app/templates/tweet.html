@@ -4,101 +4,129 @@
 
 {% block content %}
 
-{% if tweet %}
 <div class="loading text-center m-5">
-  <div class="spinner-border text-primary m-5" style="width: 3rem; height: 3rem;" role="status">
+  <div class="spinner-border text-primary m-5" style="width: 3rem; height:
+    3rem;" role="status">
     <span class="sr-only">Loading...</span>
   </div>
 </div>
-
 <div class="content">
-  <div class="container-fluid overflow-auto t1">
-    <p class="text-center lead">Rispetto a questo Tweet</p>
-    <!-- <p class="h2"></p> -->
+
+  <div class="container-fluid overflow-auto">
+    <p class="text-center lead" id="question">{{ data.question }}</p>
+
     <blockquote class="blockquote text-center">
-      <p class="mb-0">{{ tweet['parentText'] }}</p>
+      <p class="mb-0" id="text">{{ data.tweet.text }}</p>
     </blockquote>
   </div>
-  <div class="container-fluid overflow-auto t2">
-    <p class="text-center lead">Come giudichi questa risposta?</p>
-    <!-- <p class="h2"></p> -->
-    <blockquote class="blockquote text-center">
-      <p class="mb-0">{{ tweet['text'] }}</p>
-    </blockquote>
-  </div>
-  <div class="container-fluid overflow-auto t3">
-    <p class="text-center lead">Come giudichi questa risposta?</p>
-    <!-- <p class="h2"></p> -->
-    <blockquote class="blockquote text-center">
-      <p class="mb-0">{{ tweet['text'] }}</p>
-    </blockquote>
-  </div>
-  <div class="container-fluid overflow-auto t4">
-    <p class="text-center lead">Come giudichi questa risposta?</p>
-    <!-- <p class="h2"></p> -->
-    <blockquote class="blockquote text-center">
-      <p class="mb-0">{{ tweet['text'] }}</p>
-    </blockquote>
-  </div>
-  <form action="/" method="POST">
-    {% for t in tweet %}
-    <input type="hidden" name="{{ t }}" value="{{ tweet[t] }}">
-    {% endfor %}
+  <form action="/save" method="POST">
+  <!-- <form id="form-data"> -->
+    <input type="hidden" name="id" id="tweet-id" value="{{ data.tweet.id }}">
+    <input type="hidden" name="polarity" id="tweet-polarity">
     <div class="container">
       <div class="row my-5">
         <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 my-2 my-sm-2
           my-md-1 my-lg-1 text-center">
-          <button type="submit" name="submit_button" 
+          <button type="submit" name="submit_button"
             value="1" class="btn btn-outline-primary btn-xl btn-block">D'accordo</button></div>
         <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 my-2 my-sm-2
           my-md-1 my-lg-1 text-center">
-          <button type="submit" name="submit_button" 
-            value="-1" class="btn btn-outline-primary btn-xl btn-block">In disaccordo</button></div>
-      </div>
-      <div class="progress">
-        <div class="progress-bar" role="progressbar" style="width: {{ progress
-          }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0"
-          aria-valuemax="100"></div>
+          <button type="submit" name="submit_button"
+            value="-1" class="btn btn-outline-primary btn-xl btn-block">In
+            disaccordo</button></div>
       </div>
       <div class="row my-5">
         <div class="col-sm text-center">
-          <button type="submit" name="submit_button" value="errore" 
-            class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="top" title="Se il Tweet contiene errori, segnalalo di modo che possa essere scartato dallo studio">
-            Il Tweet non è in italiano 
+          <button type="submit" name="submit_button" value="errore"
+            class="btn btn-outline-secondary" data-toggle="tooltip"
+            data-placement="top" title="Se il Tweet contiene errori, segnalalo
+            di modo che possa essere scartato dallo studio">
+            Il Tweet non è in italiano
           </button>
-          <button type="submit" name="submit_button" value="errore" 
-            class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="top" title="Se il Tweet contiene errori, segnalalo di modo che possa essere scartato dallo studio">
+          <button type="submit" name="submit_button" value="errore"
+            class="btn btn-outline-secondary" data-toggle="tooltip"
+            data-placement="top" title="Se il Tweet contiene errori, segnalalo
+            di modo che possa essere scartato dallo studio">
             Il Tweet è indecifrabile
           </button>
         </div>
       </div>
     </div>
   </form>
+
 </div>
-{% else %}
-<h1 class="text-center">Ops, qualcosa è andato storto, non ho trovato il Tweet.</h1>
-<h1 class="text-center">😢</h1>
-<form action="/" method="GET">
-  <div class="row my-5">
-    <div class="col-sm text-center">
-      <input type="submit" name="submit_button" value="Riprova" 
-        class="btn btn-outline-secondary">
-    </div>
-  </div>
-</form>
-{% endif %}
+
 
 <script type="text/javascript">
-$(document).ready(function() { 
-  $('.loading').hide();
-  $('.t2').hide();
-  $('.t3').hide();
-  $('.t4').hide();
-  $('.btn').on('click', function() {
-    $('.content').hide();
-    $('.loading').show();
+function getData() {
+  $.get('/next_tweet', function( data ){ 
+    $('#question').text(data.question);
+    $('#text').text(data.tweet.text);
+    $('#tweet-id').val(data.tweet.id);
   });
+}
+$(document).ready(function () {
+  $('.loading').hide();
+  // getData();
 });
+var request;
+$('#form-data').submit(function(event) {
+  // Prevent default posting of form - put here to work in case of errors
+  event.preventDefault();
+  $('.loading').show();
+  alert();
+  // Abort any pending request
+  if (request) {
+      request.abort();
+  }
+  // setup some local variables
+  var $form = $(this);
 
+  // Let's select and cache all the fields
+  var $inputs = $form.find("input, select, button, textarea");
+
+  // Serialize the data in the form
+  var serializedData = $form.serialize();
+  
+  // Let's disable the inputs for the duration of the Ajax request.
+  // Note: we disable elements AFTER the form data has been serialized.
+  // Disabled form elements will not be serialized.
+  $inputs.prop("disabled", true);
+
+  // Fire off the request to /form.php
+    request = $.ajax({
+        url: "/save",
+        type: "post",
+        data: serializedData
+    });
+
+    // Callback handler that will be called on success
+    request.done(function (response, textStatus, jqXHR){
+        // Log a message to the console
+        $('.loading').hide();
+        getData();
+    });
+
+    // Callback handler that will be called on failure
+    request.fail(function (jqXHR, textStatus, errorThrown){
+        // Log the error to the console
+        console.error(
+            "The following error occurred: "+
+            textStatus, errorThrown
+        );
+    });
+
+    // Callback handler that will be called regardless
+    // if the request failed or succeeded
+    request.always(function () {
+        // Reenable the inputs
+        $inputs.prop("disabled", false);
+    });
+});
+$(".btn").click(function() {
+    var value = $(this).attr('value');
+    $('#tweet-polarity').attr('value', value);
+});
 </script>
+
 {% endblock %}
