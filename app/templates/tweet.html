@@ -14,17 +14,32 @@
 
   <div class="container-fluid overflow-auto">
     <p class="text-center lead" id="question">{{ data.question }}</p>
+    
 
     <blockquote class="blockquote text-center">
       <p class="mb-0" id="text">{{ data.tweet.text }}</p>
     </blockquote>
+    {% if False and data.parent %}
+    <div class="row my-2">
+        <div class="col-sm text-center">
+          <button onclick="$(this).hide();$('.parent').show()" value="errore"
+            class="btn btn-outline-secondary btn-sm" data-toggle="tooltip"
+            data-placement="top" title="Mostra la domanda a cui si riferisce questa risposta">
+            Non ricordo il tweet a cui si riferisce
+          </button>
+          
+        </div>
+      </div>
+      <blockquote class="blockquote text-center parent" style="display: none;">
+          <p class="mb-0" id="text">{{ data.parent.text }}</p>
+      </blockquote>
+    {% endif %}
   </div>
   <form action="/save" method="POST">
-  <!-- <form id="form-data"> -->
     <input type="hidden" name="id" id="tweet-id" value="{{ data.tweet.id }}">
     <input type="hidden" name="polarity" id="tweet-polarity">
     <div class="container">
-      <div class="row my-5">
+      <div class="row my-3">
         <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 my-2 my-sm-2
           my-md-1 my-lg-1 text-center">
           <button type="submit" name="submit_button"
@@ -35,22 +50,18 @@
             value="-1" class="btn btn-outline-primary btn-xl btn-block">In
             disaccordo</button></div>
       </div>
+      {% if data.parent %}
       <div class="row my-5">
         <div class="col-sm text-center">
           <button type="submit" name="submit_button" value="errore"
             class="btn btn-outline-secondary" data-toggle="tooltip"
             data-placement="top" title="Se il Tweet contiene errori, segnalalo
             di modo che possa essere scartato dallo studio">
-            Il Tweet non è in italiano
-          </button>
-          <button type="submit" name="submit_button" value="errore"
-            class="btn btn-outline-secondary" data-toggle="tooltip"
-            data-placement="top" title="Se il Tweet contiene errori, segnalalo
-            di modo che possa essere scartato dallo studio">
-            Il Tweet è indecifrabile
+            Il Tweet è indecifrabile oppure non è in italiano
           </button>
         </div>
       </div>
+      {% endif %}
     </div>
   </form>
 
@@ -103,8 +114,8 @@ $('#form-data').submit(function(event) {
     // Callback handler that will be called on success
     request.done(function (response, textStatus, jqXHR){
         // Log a message to the console
-        $('.loading').hide();
         getData();
+        $('.loading').hide();
     });
 
     // Callback handler that will be called on failure
@@ -124,6 +135,7 @@ $('#form-data').submit(function(event) {
     });
 });
 $(".btn").click(function() {
+  ('.loading').show();
     var value = $(this).attr('value');
     $('#tweet-polarity').attr('value', value);
 });

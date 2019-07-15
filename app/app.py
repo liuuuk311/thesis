@@ -20,7 +20,8 @@ GRAPHENEDB_USER = os.environ.get("GRAPHENEDB_BOLT_USER")
 GRAPHENEDB_PASS = os.environ.get("GRAPHENEDB_BOLT_PASSWORD")
 
 # Get a connection to the Graph Database
-driver = GraphDatabase.driver(GRAPHENEDB_URL, auth=basic_auth(GRAPHENEDB_USER, GRAPHENEDB_PASS))
+driver = GraphDatabase.driver(
+    GRAPHENEDB_URL, auth=basic_auth(GRAPHENEDB_USER, GRAPHENEDB_PASS))
 
 # Define the app
 app = Flask(__name__)
@@ -28,6 +29,8 @@ app.secret_key = os.urandom(24)
 app.config['DEBUG'] = True
 
 # Get the session on DB
+
+
 def get_db():
     if not hasattr(g, 'neo4j_db'):
         g.neo4j_db = driver.session()
@@ -38,6 +41,7 @@ def get_db():
 def close_db(error):
     if hasattr(g, 'neo4j_db'):
         g.neo4j_db.close()
+
 
 @app.route('/start', methods=['GET', 'POST'])
 def login():
@@ -50,12 +54,13 @@ def login():
     return render_template('welcome.html')
 
 # Index route
-@app.route('/', methods=['GET']) 
+@app.route('/', methods=['GET'])
 def get_index():
     if 'userId' in session:
         return redirect('/next_tweet')
     else:
         return redirect('/start')
+
 
 @app.route("/save", methods=['POST'])
 def save():
@@ -63,13 +68,18 @@ def save():
 
         # Get parameters
         tweet_id = request.form['id']
-        tweet_polarity = int(request.form['polarity'])
-    
+        try:
+            tweet_polarity = int(request.form['submit_button'])
+        except ValueError as e:
+            print(e)
+            print(request.form)
+            tweet_polarity = request.form['submit_button']
+
         str_polarity = ""
         if session[session['userId'] + '-count'] % 4 == 0:
             session['mainPolarity'] = tweet_polarity
-        else:
-            tweet_polarity = tweet_polarity * session['mainPolarity'] 
+        elif tweet_polarity != 'errore':
+            tweet_polarity = tweet_polarity * session['mainPolarity']
             str_polarity = 'DISAGREE' if tweet_polarity < 0 else 'AGREE'
             query = """
             MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
@@ -82,53 +92,55 @@ def save():
             query_result = db.run(query)
 
         if session[session['userId'] + '-count'] % 4 == 3:
-            session[session['userId'] + '-not-in-list'].append(session[session['userId'] + '-tid'])
-            session[session['userId'] + '-not-in-list'] = session[session['userId'] + '-not-in-list']
-        
+            session[session['userId'] +
+                    '-not-in-list'].append(session[session['userId'] + '-tid'])
+            session[session['userId'] +
+                    '-not-in-list'] = session[session['userId'] + '-not-in-list']
 
-        session[session['userId'] + '-count'] = session[session['userId'] + '-count'] + 1
+        session[session['userId'] +
+                '-count'] = session[session['userId'] + '-count'] + 1
 
-        
         return redirect('/next_tweet')
     else:
         return redirect('/start')
-        
 
-@app.route('/next_tweet', methods=['GET']) 
+
+@app.route('/next_tweet', methods=['GET'])
 def get_next_tweet():
-    
+
     if 'userId' in session and session[session['userId'] + '-count'] < 13:
-        
+
         query = """
         MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
         WHERE NOT EXISTS (r.polarity) AND NOT (b.id IN {}) AND a.valid = 1
         """.format(session[session['userId'] + '-not-in-list'])
 
         if session['userId'] + '-tid' in session.keys() and session[session['userId'] + '-count'] % 4 != 0:
-            query += " AND b.id = '{}'".format(session[session['userId'] + '-tid'])
+            query += " AND b.id = '{}'".format(
+                session[session['userId'] + '-tid'])
 
         query += """
         RETURN a.id, a.text, r.polarity, b.id, b.text
         LIMIT 1
         """
 
-        
         # Run the query
         db = get_db()
-        query_result = db.run(query) 
+        query_result = db.run(query)
         result = query_result.data()
-        
+
         if len(result) == 0:
             return redirect('/thank-you')
 
         if session[session['userId'] + '-count'] % 4 != 0:
-            tweet_dict = {'question': 'Rispetto a questa risposta', 'tweet' : {'id': result[0]['a.id'], 'text': result[0]['a.text']}}
+            tweet_dict = {'question': 'Rispetto a questa risposta', 'tweet': {
+                'id': result[0]['a.id'], 'text': result[0]['a.text']}, 'parent': {'id': result[0]['b.id'], 'text': result[0]['b.text']}}
         else:
-            tweet_dict = {'question': 'Rispetto a questo tweet', 'tweet' : {'id': result[0]['b.id'], 'text': result[0]['b.text']}}
+            tweet_dict = {'question': 'Rispetto a questo tweet', 'tweet': {
+                'id': result[0]['b.id'], 'text': result[0]['b.text']}}
 
             session[session['userId'] + '-tid'] = result[0]['b.id']
-        
-        
+
         return render_template('tweet.html', data=tweet_dict)
 
     elif session[session['userId'] + '-count'] == 12:
