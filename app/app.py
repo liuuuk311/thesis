@@ -8,11 +8,8 @@ from flask import Flask, g, Response, request, render_template, session, redirec
 
 # Database
 import psycopg2
-from sqlalchemy import create_engine
 from neo4j import GraphDatabase, basic_auth
 
-# Misc
-import pandas as pd
 
 # Get environment variables
 GRAPHENEDB_URL = os.environ.get("GRAPHENEDB_BOLT_URL")
