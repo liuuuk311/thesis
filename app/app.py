@@ -23,7 +23,7 @@ driver = GraphDatabase.driver(
 # Define the app
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-app.config['DEBUG'] = True
+app.config['DEBUG'] = False
 
 # Get the session on DB
 
@@ -68,8 +68,6 @@ def save():
         try:
             tweet_polarity = int(request.form['submit_button'])
         except ValueError as e:
-            print(e)
-            print(request.form)
             tweet_polarity = request.form['submit_button']
 
         str_polarity = ""
@@ -83,6 +81,16 @@ def save():
             WHERE a.id = '{}'
             SET r.polarity = '{}'
             """.format(tweet_id, str_polarity)
+
+            # Run the query
+            db = get_db()
+            query_result = db.run(query)
+        else:
+            query = """
+            MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
+            WHERE a.id = '{}'
+            SET a.valid = 'NOT_VALID'
+            """.format(tweet_id)
 
             # Run the query
             db = get_db()
@@ -105,7 +113,7 @@ def save():
 @app.route('/next_tweet', methods=['GET'])
 def get_next_tweet():
 
-    if 'userId' in session and session[session['userId'] + '-count'] < 13:
+    if 'userId' in session and session[session['userId'] + '-count'] < 12:
 
         query = """
         MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
@@ -137,10 +145,11 @@ def get_next_tweet():
                 'id': result[0]['b.id'], 'text': result[0]['b.text']}}
 
             session[session['userId'] + '-tid'] = result[0]['b.id']
+        
 
         return render_template('tweet.html', data=tweet_dict)
 
-    elif session[session['userId'] + '-count'] == 12:
+    elif 'userId' in session and session[session['userId'] + '-count'] == 12:
         return redirect('/thank-you')
     else:
         return redirect('/start')
@@ -165,4 +174,4 @@ def clearSession():
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
