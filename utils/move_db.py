@@ -14,7 +14,12 @@ GRAPHENEDB_PASS = os.environ.get("GRAPHENEDB_BOLT_PASSWORD")
 driverRemote = GraphDatabase.driver(
     GRAPHENEDB_URL, auth=basic_auth(GRAPHENEDB_USER, GRAPHENEDB_PASS))
 
-localGraph = Graph("bolt://localhost:7687", auth=("neo4j", "GraphPA$$.2019"))
+
+LOCAL_URL = os.environ.get("LOCAL_BOLT_URL")
+LOCAL_USER = os.environ.get("LOCAL_BOLT_USER")
+LOCAL_PASS = os.environ.get("LOCAL_BOLT_PASS")
+
+localGraph = Graph(LOCAL_URL, auth=(LOCAL_USER, LOCAL_PASS))
 
 
 # Read 
