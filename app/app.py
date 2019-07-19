@@ -22,7 +22,7 @@ driver = GraphDatabase.driver(
 
 # Define the app
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = '22818b74a2104795ae41c774d8bf529d'
 app.config['DEBUG'] = False
 
 # Get the session on DB
@@ -39,6 +39,12 @@ def close_db(error):
     if hasattr(g, 'neo4j_db'):
         g.neo4j_db.close()
 
+@app.route('/end', methods=['GET'])
+def get_end():
+    if 'userId' in session:
+        clearSession()
+
+    return render_template('end.html')
 
 @app.route('/start', methods=['GET', 'POST'])
 def login():
@@ -56,7 +62,19 @@ def get_index():
     if 'userId' in session:
         return redirect('/next_tweet')
     else:
-        return redirect('/start')
+        query = """
+        MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
+        WHERE NOT EXISTS (r.polarity) and a.valid = 1
+        RETURN count(r)
+        """
+        # Run the query
+        db = get_db()
+        query_result = db.run(query)
+        result = query_result.data()
+        if result[0]['count(r)'] > 9:
+            return redirect('/start')
+        else:
+            return redirect('/end')
 
 
 @app.route("/save", methods=['POST'])
@@ -85,7 +103,7 @@ def save():
             # Run the query
             db = get_db()
             query_result = db.run(query)
-        else:
+        elif tweet_polarity == 'errore':
             query = """
             MATCH (a:Tweet)-[r:REPLIES]->(b:Tweet)
             WHERE a.id = '{}'
