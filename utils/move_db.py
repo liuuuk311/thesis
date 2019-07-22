@@ -27,13 +27,17 @@ query = """
 MATCH (a)-[r:REPLIES]->(b)
 WHERE EXISTS(r.polarity) AND a.valid =1
 RETURN a, r, b
+LIMIT 5
 """
 db = driverRemote.session()
 query_result = db.run(query)
 results = query_result.data()
 
+
+
 # Write
 for r in results:
+
     userNode = Node('User',
                     displayName= r['a']['displayName'],
                     username= r['a']['username'] )
@@ -46,9 +50,19 @@ for r in results:
                         commentCount=r['a']['commentCount'],
                         retweetCount=r['a']['retweetCount'],
                         favouriteCount=r['a']['favouriteCount'])
+    
+    localGraph.merge(replyNode, 'Reply', 'id')
+    query = """
+        MATCH (a:User)-[r:WROTE]->(t:Reply)
+        WHERE a.username = '{}' AND t.id = '{}'
+        RETURN r
+    """.format(userNode['username'], replyNode['id'])
 
-    WROTE = Relationship.type("WROTE")
-    localGraph.create(WROTE(userNode, replyNode))
+    wrote_rel = localGraph.run(query).data()
+
+    if not wrote_rel:
+        WROTE = Relationship.type("WROTE")
+        localGraph.create(WROTE(userNode, replyNode))
 
     tweetNode = Node('Tweet',
                     id=r['b']['id'],
@@ -56,5 +70,22 @@ for r in results:
                     date=r['b']['date'])
     localGraph.merge(tweetNode, 'Tweet', 'id')
 
-    REL = Relationship.type(r['r']['polarity'])
-    localGraph.create(REL(replyNode, tweetNode))
+
+    query = """
+        MATCH (r:Reply)-[p:POLARITY]->(t:Tweet)
+        WHERE r.id = '{}'
+        RETURN p
+    """.format(replyNode['id'])
+    polarity_rel = localGraph.run(query).data()
+
+    
+    if not polarity_rel:
+        REL = Relationship.type("POLARITY")
+        localGraph.create(REL(replyNode, tweetNode, values=[]))
+
+    query = """
+        MATCH (r:Reply)-[p:POLARITY]->(t:Tweet)
+        WHERE r.id = '{}'
+        SET p.values = p.values + '{}'
+    """.format(replyNode['id'], r['r']['polarity'])
+    localGraph.run(query)
